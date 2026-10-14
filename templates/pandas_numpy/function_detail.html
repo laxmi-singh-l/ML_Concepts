@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% block title %}{{ func.library }}.{{ func.name }} - ML Concepts{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'pandas_numpy:function_list' %}?library={{ func.library }}">{{ func.library|title }} Functions</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'pandas_numpy:function_list' %}?library={{ func.library }}&category={{ func.category }}">{{ func.get_category_display }}</a></li>
+            <li class="breadcrumb-item active">{{ func.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <main class="col-lg-9">
+            <div class="d-flex align-items-start mb-4">
+                <div class="me-4">
+                    <div class="function-icon">
+                        <i class="bi bi-code-square"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <h1 class="h3 mb-0"><code class="text-primary">{{ func.library }}.{{ func.name }}</code></h1>
+                        <span class="badge {% if func.difficulty == 'beginner' %}bg-success{% elif func.difficulty == 'intermediate' %}bg-warning{% else %}bg-danger{% endif %}">
+                            {{ func.difficulty|title }}
+                        </span>
+                        {% if func.is_popular %}<span class="badge bg-warning"><i class="bi bi-star-fill"></i> Popular</span>{% endif %}
+                    </div>
+                    <p class="lead text-muted">{{ func.short_description }}</p>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-terminal me-2"></i>Signature</h6>
+                </div>
+                <div class="card-body">
+                    <pre class="mb-0 p-3 bg-dark text-light rounded"><code class="language-python">{{ func.signature }}</code></pre>
+                </div>
+            </div>
+
+            {% if func.long_description %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2"></i>Description</h6>
+                </div>
+                <div class="card-body">{{ func.long_description|safe }}</div>
+            </div>
+            {% endif %}
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-play-circle me-2"></i>Example</h6>
+                    <button class="btn btn-sm btn-outline-light copy-btn" data-code="{{ func.example_code|escapejs }}"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="code-block">
+                        <pre class="mb-0 p-3"><code class="language-python">{{ func.example_code }}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            {% if func.expected_output %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-terminal me-2"></i>Expected Output</h6>
+                </div>
+                <div class="card-body p-0">
+                    <pre class="p-3 bg-light mb-0"><code>{{ func.expected_output }}</code></pre>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if func.test_code %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-success"><i class="bi bi-check-circle me-2"></i>Test Code</h6>
+                    <button class="btn btn-sm btn-outline-light copy-btn" data-code="{{ func.test_code|escapejs }}"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="code-block">
+                        <pre class="mb-0 p-3"><code class="language-python">{{ func.test_code }}</code></pre>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if func.common_mistakes %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 fw-bold text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Common Mistakes</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        {% for mistake in func.common_mistakes %}
+                        <li class="mb-2">{{ mistake }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if same_category %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-collection me-2"></i>More {{ func.get_category_display }}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for f in same_category %}
+                        <a href="{% url 'pandas_numpy:function_detail' f.library f.name %}" class="btn btn-sm btn-outline-secondary">
+                            <code>{{ f.name }}</code>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </main>
+
+        <aside class="col-lg-3">
+            <div class="sticky-top" style="top: 100px;">
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>Quick Info</h6>
+                        <ul class="list-unstyled small mb-0">
+                            <li class="mb-2"><strong>Library:</strong> {{ func.library|title }}</li>
+                            <li class="mb-2"><strong>Category:</strong> {{ func.get_category_display }}</li>
+                            <li class="mb-2"><strong>Difficulty:</strong> {{ func.difficulty|title }}</li>
+                            <li class="mb-0"><strong>Type:</strong> {{ func.get_type_display|default:"Function" }}</li>
+                        </ul>
+                    </div>
+                </div>
+
+                {% if related %}
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-transparent border-0">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-link-45deg me-2"></i>Related Functions</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            {% for rel in related %}
+                            <li class="list-group-item border-0 px-3 py-2">
+                                <a href="{% url 'pandas_numpy:function_detail' rel.library rel.name %}" class="text-decoration-none">
+                                    <code class="text-primary">{{ rel.library }}.{{ rel.name }}</code>
+                                    <div class="small text-muted">{{ rel.short_description|truncatewords:8 }}</div>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <a href="{% url 'pandas_numpy:playground' %}?code={{ func.example_code|urlencode }}" class="btn btn-primary w-100 mb-2">
+                            <i class="bi bi-play-circle me-2"></i>Try in Playground
+                        </a>
+                        <a href="{% url 'pandas_numpy:function_list' %}?library={{ func.library }}&category={{ func.category }}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-arrow-left me-2"></i>Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.function-icon { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.75rem; }
+.code-block { background: #1e1e1e; border-radius: 0 0 12px 12px; }
+.code-block pre { margin: 0; background: transparent !important; }
+code { font-family: 'JetBrains Mono', monospace; }
+</style>
+{% endblock %}

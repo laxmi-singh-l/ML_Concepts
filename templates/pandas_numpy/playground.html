@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+{% block title %}Code Playground - ML Concepts{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1"><i class="bi bi-play-circle me-2 text-primary"></i>Code Playground</h1>
+            <p class="text-muted mb-0">Write and test Pandas/NumPy code right in your browser</p>
+        </div>
+        <a href="{% url 'pandas_numpy:function_list' %}" class="btn btn-outline-secondary"><i class="bi bi-book me-2"></i>Browse Functions</a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-code me-2"></i>Your Code</h6>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" id="clearBtn"><i class="bi bi-eraser me-1"></i>Clear</button>
+                        <button class="btn btn-sm btn-success" id="runBtn"><i class="bi bi-play-fill me-1"></i>Run</button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <textarea id="codeInput" class="form-control border-0 font-monospace" style="height: 500px; resize: none; font-size: 0.875rem;">{{ sample_code }}</textarea>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-terminal me-2"></i>Output</h6>
+                    <span id="status" class="badge bg-secondary">Ready</span>
+                </div>
+                <div class="card-body">
+                    <pre id="output" class="bg-dark text-light p-3 rounded" style="height: 500px; overflow: auto; font-size: 0.875rem;">Click "Run" to execute your code...</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-table text-primary" style="font-size: 2rem;"></i>
+                    <h6 class="mt-2">Pandas Basics</h6>
+                    <button class="btn btn-sm btn-outline-primary load-snippet" data-snippet="pandas_basics">Load</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-calculator text-primary" style="font-size: 2rem;"></i>
+                    <h6 class="mt-2">NumPy Arrays</h6>
+                    <button class="btn btn-sm btn-outline-primary load-snippet" data-snippet="numpy_arrays">Load</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-funnel text-primary" style="font-size: 2rem;"></i>
+                    <h6 class="mt-2">Data Filtering</h6>
+                    <button class="btn btn-sm btn-outline-primary load-snippet" data-snippet="filtering">Load</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-bar-chart text-primary" style="font-size: 2rem;"></i>
+                    <h6 class="mt-2">Statistics</h6>
+                    <button class="btn btn-sm btn-outline-primary load-snippet" data-snippet="stats">Load</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="toast" class="toast align-items-center text-bg-info border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body"><span id="toastMsg">Info</span></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+<script>
+const SNIPPETS = {
+    pandas_basics: `import pandas as pd
+import numpy as np
+
+# Create a DataFrame
+df = pd.DataFrame({
+    'Name': ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve'],
+    'Age': [25, 30, 35, 28, 32],
+    'Salary': [50000, 60000, 70000, 55000, 65000],
+    'Department': ['IT', 'HR', 'IT', 'Finance', 'HR']
+})
+
+print("DataFrame:")
+print(df)
+print("\\nInfo:")
+print(df.info())
+print("\\nDescribe:")
+print(df.describe())
+print("\\nFirst 3 rows:")
+print(df.head(3))`,
+    numpy_arrays: `import numpy as np
+
+# Create arrays
+arr1 = np.array([1, 2, 3, 4, 5])
+arr2 = np.arange(0, 10, 2)
+arr3 = np.linspace(0, 1, 5)
+
+print("Array 1:", arr1)
+print("Array 2 (arange):", arr2)
+print("Array 3 (linspace):", arr3)
+print("\\nStatistics:")
+print("Mean:", arr1.mean())
+print("Std:", arr1.std())
+print("Sum:", arr1.sum())
+print("\\n2D Array:")
+matrix = np.array([[1, 2], [3, 4]])
+print(matrix)
+print("Transpose:", matrix.T)
+print("Dot product:", matrix.dot(matrix.T))`,
+    filtering: `import pandas as pd
+
+df = pd.DataFrame({
+    'Name': ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve'],
+    'Age': [25, 30, 35, 28, 32],
+    'Salary': [50000, 60000, 70000, 55000, 65000]
+})
+
+# Filter rows
+print("Age > 28:")
+print(df[df['Age'] > 28])
+print("\\nSalary between 55000 and 65000:")
+print(df[(df['Salary'] >= 55000) & (df['Salary'] <= 65000)])
+print("\\nNames starting with 'A' or 'B':")
+print(df[df['Name'].str.startswith(['A', 'B'])])
+print("\\nSelect specific columns:")
+print(df[['Name', 'Salary']])`,
+    stats: `import pandas as pd
+import numpy as np
+
+df = pd.DataFrame({
+    'Math': [85, 90, 78, 92, 88],
+    'Science': [82, 95, 80, 88, 91],
+    'English': [88, 85, 90, 84, 87]
+})
+
+print("Mean per subject:")
+print(df.mean())
+print("\\nMedian per subject:")
+print(df.median())
+print("\\nStandard deviation:")
+print(df.std())
+print("\\nCorrelation matrix:")
+print(df.corr())
+print("\\nStudent stats:")
+print("Overall mean:", df.values.mean())
+print("Highest score:", df.values.max())
+print("Lowest score:", df.values.min())`
+};
+
+let pyodide = null;
+
+async function initPyodide() {
+    setStatus('loading', 'Loading Python...');
+    try {
+        pyodide = await loadPyodide();
+        await pyodide.loadPackage(['pandas', 'numpy']);
+        setStatus('ready', 'Ready');
+        showToast('Python environment loaded!');
+    } catch (err) {
+        setStatus('error', 'Error');
+        document.getElementById('output').textContent = 'Failed to load Pyodide: ' + err.message;
+    }
+}
+
+function setStatus(state, text) {
+    const el = document.getElementById('status');
+    el.textContent = text;
+    el.className = 'badge ' + (
+        state === 'ready' ? 'bg-success' :
+        state === 'loading' ? 'bg-warning' :
+        state === 'error' ? 'bg-danger' : 'bg-secondary'
+    );
+}
+
+function showToast(msg) {
+    document.getElementById('toastMsg').textContent = msg;
+    new bootstrap.Toast(document.getElementById('toast')).show();
+}
+
+async function runCode() {
+    if (!pyodide) {
+        showToast('Python still loading, please wait...');
+        return;
+    }
+    
+    const code = document.getElementById('codeInput').value;
+    const output = document.getElementById('output');
+    setStatus('running', 'Running...');
+    output.textContent = 'Running...\n';
+    
+    try {
+        pyodide.runPython(`
+import sys
+from io import StringIO
+_old_stdout = sys.stdout
+sys.stdout = _captured = StringIO()
+`);
+        pyodide.runPython(code);
+        const result = pyodide.runPython('_captured.getvalue()');
+        output.textContent = result || '(no output)';
+        setStatus('ready', 'Done');
+    } catch (err) {
+        output.textContent = 'Error:\n' + err.message;
+        setStatus('error', 'Error');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initPyodide();
+    
+    document.getElementById('runBtn').addEventListener('click', runCode);
+    
+    document.getElementById('clearBtn').addEventListener('click', () => {
+        document.getElementById('codeInput').value = '';
+        document.getElementById('output').textContent = 'Ready to run...';
+    });
+    
+    document.querySelectorAll('.load-snippet').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const snippet = e.target.closest('.load-snippet').dataset.snippet;
+            document.getElementById('codeInput').value = SNIPPETS[snippet] || '';
+            showToast('Code loaded!');
+        });
+    });
+    
+    document.getElementById('codeInput').addEventListener('keydown', e => {
+        if (e.ctrlKey && e.key === 'Enter') {
+            runCode();
+        }
+    });
+});
+</script>
+{% endblock %}

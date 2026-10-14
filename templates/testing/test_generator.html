@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}Test Generator - ML Concepts{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1"><i class="bi bi-clipboard-check me-2 text-primary"></i>ML Test Generator</h1>
+            <p class="text-muted mb-0">Generate testing code for your ML models</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'testing:metric_library' %}" class="btn btn-outline-primary"><i class="bi bi-graph-up me-2"></i>Metric Library</a>
+            <a href="{% url 'testing:validation_patterns' %}" class="btn btn-outline-secondary"><i class="bi bi-shield-check me-2"></i>Validation Patterns</a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-cpu me-2"></i>Model Type</h6>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="model_type" value="classification" id="cls" {% if model_type == 'classification' %}checked{% endif %}>
+                        <label class="form-check-label" for="cls">
+                            <i class="bi bi-tag me-1"></i>Classification
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="model_type" value="regression" id="reg" {% if model_type == 'regression' %}checked{% endif %}>
+                        <label class="form-check-label" for="reg">
+                            <i class="bi bi-graph-up me-1"></i>Regression
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-list-check me-2"></i>Tests to Include</h6>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="test_types" value="validation" id="t1" checked>
+                        <label class="form-check-label" for="t1">Data Validation</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="test_types" value="split" id="t2" checked>
+                        <label class="form-check-label" for="t2">Train/Test Split</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="test_types" value="cross_validation" id="t3" checked>
+                        <label class="form-check-label" for="t3">Cross Validation</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="test_types" value="overfitting" id="t4" checked>
+                        <label class="form-check-label" for="t4">Overfitting Detection</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="test_types" value="data_leakage" id="t5">
+                        <label class="form-check-label" for="t5">Data Leakage Check</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <button class="btn btn-primary w-100" id="generateBtn">
+                        <i class="bi bi-magic me-2"></i>Generate Test Code
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-code me-2"></i>Generated Code</h6>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" id="copyBtn"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                        <button class="btn btn-sm btn-outline-secondary" id="downloadBtn"><i class="bi bi-download me-1"></i>.py</button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="code-block">
+                        <pre class="mb-0 p-3" style="max-height: 600px; overflow: auto;"><code class="language-python" id="codeOutput">{% if generated_code %}{{ generated_code }}{% else %}# Configure your tests on the left and click "Generate Test Code"
+# Your complete testing code will appear here{% endif %}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('generateBtn').addEventListener('click', function() {
+    const modelType = document.querySelector('input[name="model_type"]:checked').value;
+    const testTypes = Array.from(document.querySelectorAll('input[name="test_types"]:checked')).map(c => c.value);
+    
+    const params = new URLSearchParams();
+    params.set('model', modelType);
+    testTypes.forEach(t => params.append('test_types', t));
+    params.set('generate', '1');
+    
+    window.location.href = '{% url "testing:test_generator" %}?' + params.toString();
+});
+
+document.getElementById('copyBtn').addEventListener('click', function() {
+    navigator.clipboard.writeText(document.getElementById('codeOutput').textContent);
+    this.innerHTML = '<i class="bi bi-check me-1"></i>Copied!';
+    setTimeout(() => { this.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copy'; }, 2000);
+});
+
+document.getElementById('downloadBtn').addEventListener('click', function() {
+    const code = document.getElementById('codeOutput').textContent;
+    const blob = new Blob([code], { type: 'text/x-python' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ml_model_tests.py';
+    a.click();
+    URL.revokeObjectURL(url);
+});
+</script>
+{% endblock %}

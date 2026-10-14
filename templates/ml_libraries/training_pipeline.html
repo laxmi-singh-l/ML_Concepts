@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+{% block title %}Training Pipeline Builder - ML Concepts{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="mb-4">
+        <h1 class="h3 mb-1">Training Pipeline Builder</h1>
+        <p class="text-muted mb-0">Build a complete ML training pipeline step by step with your chosen library</p>
+    </div>
+
+    <div class="row">
+        <aside class="col-lg-3">
+            <div class="sticky-top" style="top: 100px;">
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-cpu me-2"></i>Select Library</h6>
+                        <form id="libraryForm">
+                            {% for lib in libraries %}
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="library" value="{{ lib.slug }}" id="lib{{ lib.id }}" data-library='{{ lib|json_script:"lib-data-"|add:lib.id }}'>
+                                <label class="form-check-label d-flex align-items-center" for="lib{{ lib.id }}">
+                                    <div class="library-icon-small me-2">
+                                        <i class="bi bi-{{ lib.icon|default:'cpu' }}"></i>
+                                    </div>
+                                    {{ lib.name }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </form>
+                        <hr>
+                        <div class="d-grid">
+                            <button class="btn btn-primary" id="generatePipeline" disabled><i class="bi bi-magic me-2"></i>Generate Pipeline</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent border-0">
+                        <h6 class="mb-0 fw-bold">Pipeline Steps</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush" id="pipelineSteps">
+                            {% for step in pipeline_steps %}
+                            <li class="list-group-item border-0 px-3 py-2 d-flex align-items-center text-muted" data-step="{{ step.id }}">
+                                <span class="step-number me-2">{{ forloop.counter }}</span>
+                                <i class="bi bi-{{ step.icon }} me-2"></i>
+                                {{ step.name }}
+                                <span class="ms-auto step-status"><i class="bi bi-circle"></i></span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="col-lg-9">
+            <div id="pipelineOutput">
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-cpu" style="font-size: 4rem;"></i>
+                    <h4 class="mt-3">Select a Library to Begin</h4>
+                    <p>Choose a library from the sidebar to generate a complete training pipeline with code for each step.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.library-icon-small { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.875rem; }
+.step-number { width: 24px; height: 24px; border-radius: 50%; background: #e9ecef; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: #6c757d; flex-shrink: 0; }
+.step-status { color: #dee2e6; }
+#pipelineSteps li.active .step-number { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+#pipelineSteps li.active .step-status { color: #667eea; }
+#pipelineSteps li.completed .step-status { color: #28a745; }
+#pipelineSteps li.completed .step-status i { transform: rotate(0); }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Library data will be loaded via JSON script tags
+const libraryData = {};
+{% for lib in libraries %}
+libraryData['{{ lib.slug }}'] = {
+    name: '{{ lib.name }}',
+    install: '{{ lib.install_command|escapejs }}',
+    import: '{{ lib.import_statement|escapejs }}',
+    steps: [
+    {% for step in lib.training_steps.all %}
+        {
+            type: '{{ step.step_type }}',
+            title: '{{ step.title|escapejs }}',
+            description: '{{ step.description|escapejs }}',
+            code: `{{ step.code_template|escapejs }}`,
+            explanation: '{{ step.explanation|escapejs }}',
+            tips: {{ step.tips|safe }},
+            pitfalls: {{ step.common_pitfalls|safe }},
+            optional: {{ step.is_optional|yesno:"true,false" }}
+        },
+    {% endfor %}
+    ]
+};
+{% endfor %}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const libraryRadios = document.querySelectorAll('input[name="library"]');
+    const generateBtn = document.getElementById('generatePipeline');
+    const pipelineOutput = document.getElementById('pipelineOutput');
+    const pipelineSteps = document.querySelectorAll('#pipelineSteps li');
+
+    libraryRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            generateBtn.disabled = false;
+        });
+    });
+
+    generateBtn.addEventListener('click', function() {
+        const selectedLib = document.querySelector('input[name="library"]:checked');
+        if (!selectedLib) return;
+        
+        const lib = libraryData[selectedLib.value];
+        if (!lib) return;
+
+        // Update step indicators
+        pipelineSteps.forEach((step, idx) => {
+            step.classList.remove('active', 'completed');
+            if (idx < lib.steps.length) {
+                step.classList.add('active');
+            }
+        });
+
+        // Generate pipeline HTML
+        let html = `
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-cpu me-2"></i>${lib.name} - Complete Training Pipeline</h5>
+                </div>
+                <div class="card-body">
+        `;
+
+        // Installation
+        html += `
+            <section class="mb-4">
+                <h6 class="fw-bold mb-2"><i class="bi bi-download text-primary me-1"></i>1. Installation</h6>
+                <div class="code-block mb-2">
+                    <div class="code-header d-flex justify-content-between align-items-center px-3 py-2 bg-dark">
+                        <span class="text-muted small">bash</span>
+                        <button class="btn btn-sm btn-outline-light copy-btn" data-code="${lib.install}"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                    </div>
+                    <pre class="mb-0 p-3"><code class="language-bash">${lib.install}</code></pre>
+                </div>
+            </section>
+        `;
+
+        // Imports
+        html += `
+            <section class="mb-4">
+                <h6 class="fw-bold mb-2"><i class="bi bi-code text-primary me-1"></i>2. Imports</h6>
+                <div class="code-block mb-2">
+                    <div class="code-header d-flex justify-content-between align-items-center px-3 py-2 bg-dark">
+                        <span class="text-muted small">python</span>
+                        <button class="btn btn-sm btn-outline-light copy-btn" data-code="${lib.import}"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                    </div>
+                    <pre class="mb-0 p-3"><code class="language-python">${lib.import}</code></pre>
+                </div>
+            </section>
+        `;
+
+        // Steps
+        lib.steps.forEach((step, idx) => {
+            html += `
+                <section class="mb-4" id="step-${step.type}">
+                    <h6 class="fw-bold mb-2"><span class="badge bg-primary me-2">${idx + 3}</span><i class="bi bi-arrow-right text-primary me-1"></i>${step.title}</h6>
+                    <p class="text-muted small mb-3">${step.description}</p>
+            `;
+
+            if (step.explanation) {
+                html += `<div class="alert alert-light border mb-3">${step.explanation}</div>`;
+            }
+
+            html += `
+                    <div class="code-block mb-3">
+                        <div class="code-header d-flex justify-content-between align-items-center px-3 py-2 bg-dark">
+                            <span class="text-muted small">python</span>
+                            <button class="btn btn-sm btn-outline-light copy-btn" data-code="${step.code.replace(/"/g, '"').replace(/'/g, ''')}"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                        </div>
+                        <pre class="mb-0 p-3"><code class="language-python">${step.code}</code></pre>
+                    </div>
+            `;
+
+            if (step.tips && step.tips.length > 0) {
+                html += `<h6 class="fw-bold mb-2"><i class="bi bi-lightbulb text-warning me-1"></i>Tips</h6><ul class="mb-3 small">`;
+                step.tips.forEach(tip => { html += `<li>${tip}</li>`; });
+                html += `</ul>`;
+            }
+
+            if (step.pitfalls && step.pitfalls.length > 0) {
+                html += `<h6 class="fw-bold mb-2"><i class="bi bi-exclamation-triangle text-danger me-1"></i>Common Pitfalls</h6><ul class="mb-0 small">`;
+                step.pitfalls.forEach(pitfall => { html += `<li class="text-danger">${pitfall}</li>`; });
+                html += `</ul>`;
+            }
+
+            html += `</section>`;
+        });
+
+        html += `
+                </div>
+            </div>
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-success" onclick="downloadPipeline('${lib.name}')"><i class="bi bi-download me-2"></i>Download Complete Pipeline (.py)</button>
+            </div>
+        `;
+
+        pipelineOutput.innerHTML = html;
+        Prism.highlightAll();
+        
+        // Re-attach copy handlers
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                navigator.clipboard.writeText(btn.dataset.code);
+                const original = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check me-1"></i>Copied!';
+                btn.classList.remove('btn-outline-light');
+                btn.classList.add('btn-success');
+                setTimeout(() => {
+                    btn.innerHTML = original;
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-light');
+                }, 2000);
+            });
+        });
+    });
+
+    window.downloadPipeline = function(libName) {
+        const content = document.getElementById('pipelineOutput').innerText;
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${libName.toLowerCase().replace(/\s+/g, '_')}_pipeline.py`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+});
+</script>
+{% endblock %}

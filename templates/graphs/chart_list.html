@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Chart Gallery - ML Concepts{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="mb-4">
+        <h1 class="h3 mb-1">Chart Gallery</h1>
+        <p class="text-muted mb-0">Choose a chart type to start building. Every chart shows you the exact code.</p>
+    </div>
+
+    <div class="row g-4">
+        {% for template in templates %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card chart-card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="chart-icon me-3">
+                            <i class="bi bi-{{ template.icon }}"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title fw-bold mb-1">{{ template.name }}</h5>
+                            <span class="badge bg-light text-dark">{{ template.get_chart_type_display }}</span>
+                        </div>
+                    </div>
+                    <p class="card-text text-muted small mb-3">{{ template.description|truncatewords:20 }}</p>
+                    <div class="mb-3">
+                        <small class="text-muted fw-bold">Best for:</small>
+                        <p class="small mb-0 text-muted">{{ template.use_case|truncatewords:15 }}</p>
+                    </div>
+                    <a href="{% url 'graphs:chart_builder_type' template.chart_type %}" class="btn btn-primary w-100">
+                        <i class="bi bi-pencil-square me-2"></i>Build This Chart
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.chart-card { transition: transform 0.2s, box-shadow 0.2s; border-radius: 12px; }
+.chart-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.1) !important; }
+.chart-icon { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; }
+</style>
+{% endblock %}

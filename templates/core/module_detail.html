@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}{{ module.name }} - ML Concepts{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item active">{{ module.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <aside class="col-lg-3">
+            <div class="sticky-top" style="top: 100px;">
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="module-icon me-3">
+                                <i class="bi bi-{{ module.icon }}"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">{{ module.name }}</h5>
+                                <small class="text-muted">Module {{ module.id }}</small>
+                            </div>
+                        </div>
+                        <p class="text-muted small">{{ module.description|default:"Interactive lessons with code examples and visualizations" }}</p>
+                        <hr>
+                        <div class="d-grid gap-2">
+                            {% if is_completed %}
+                            <button class="btn btn-outline-primary" disabled><i class="bi bi-check-circle me-2"></i>Completed</button>
+                            {% else %}
+                            <form method="POST" action="{% url 'complete_module' module.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-2"></i>Mark Complete</button>
+                            </form>
+                            {% endif %}
+                            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i>Back to Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent border-0">
+                        <h6 class="mb-0 fw-bold">Module Contents</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            {% for section in module.sections %}
+                            <li class="list-group-item border-0 px-3 py-2">
+                                <a href="#{{ section.anchor }}" class="text-decoration-none text-dark d-flex align-items-center">
+                                    <i class="bi bi-{{ section.icon }} me-2 text-muted"></i>
+                                    <span>{{ section.title }}</span>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="col-lg-9">
+            {% for section in module.sections %}
+            <section id="{{ section.anchor }}" class="mb-5">
+                <h2 class="h4 fw-bold mb-3"><i class="bi bi-{{ section.icon }} me-2 text-primary"></i>{{ section.title }}</h2>
+                
+                {% if section.explanation %}
+                <div class="alert alert-light border mb-4">
+                    {{ section.explanation|safe }}
+                </div>
+                {% endif %}
+
+                {% if section.code %}
+                <div class="code-block mb-4">
+                    <div class="code-header d-flex justify-content-between align-items-center px-3 py-2 bg-dark">
+                        <span class="text-muted small">{{ section.code_language|default:"python" }}</span>
+                        <button class="btn btn-sm btn-outline-light copy-btn" data-code="{{ section.code|escapejs }}"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                    </div>
+                    <pre class="mb-0 p-3"><code class="language-{{ section.code_language|default:"python" }}">{{ section.code }}</code></pre>
+                </div>
+                {% endif %}
+
+                {% if section.visualization %}
+                <div class="viz-container mb-4">
+                    {{ section.visualization|safe }}
+                </div>
+                {% endif %}
+
+                {% if section.interactive %}
+                <div class="interactive-section mb-4 p-4 bg-light rounded">
+                    <h6 class="fw-bold mb-3"><i class="bi bi-hand-index-thumb me-1"></i>Try It Yourself</h6>
+                    {{ section.interactive|safe }}
+                </div>
+                {% endif %}
+
+                {% if section.key_points %}
+                <div class="key-points mb-4">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-lightbulb me-1"></i>Key Takeaways</h6>
+                    <ul class="mb-0">
+                        {% for point in section.key_points %}
+                        <li>{{ point }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </section>
+            {% endfor %}
+
+            <div class="d-flex justify-content-between align-items-center pt-4 border-top">
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i>Back to Dashboard</a>
+                {% if not is_completed %}
+                <form method="POST" action="{% url 'complete_module' module.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-2"></i>Complete Module</button>
+                </form>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(btn.dataset.code);
+        const original = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check me-1"></i>Copied!';
+        btn.classList.remove('btn-outline-light');
+        btn.classList.add('btn-success');
+        setTimeout(() => {
+            btn.innerHTML = original;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-light');
+        }, 2000);
+    });
+});
+</script>
+{% endblock %}

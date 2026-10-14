@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Metric Library - ML Concepts{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1"><i class="bi bi-graph-up me-2 text-primary"></i>Metric Library</h1>
+            <p class="text-muted mb-0">Complete reference for ML evaluation metrics with code</p>
+        </div>
+        <a href="{% url 'testing:test_generator' %}" class="btn btn-outline-secondary"><i class="bi bi-clipboard-check me-2"></i>Test Generator</a>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <select name="type" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Metric Types</option>
+                        {% for val, label in type_choices %}
+                        <option value="{{ val }}" {% if metric_type == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <input type="text" name="q" class="form-control" placeholder="Search metrics..." value="{{ search }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-2"></i>Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% for metric_type, metrics in categorized.items %}
+    <section class="mb-5">
+        <h3 class="h5 fw-bold mb-3 text-uppercase text-muted">{{ metric_type }}</h3>
+        <div class="row g-4">
+            {% for metric in metrics %}
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title fw-bold mb-0">{{ metric.name }}</h5>
+                            <span class="badge bg-light text-dark">{{ metric.metric_type|title }}</span>
+                        </div>
+                        <p class="text-muted small mb-2">{{ metric.description }}</p>
+                        
+                        <div class="mb-3 p-2 bg-light rounded">
+                            <small class="text-muted fw-bold">Formula:</small>
+                            <code class="d-block">{{ metric.formula }}</code>
+                        </div>
+                        
+                        <div class="code-block mb-3">
+                            <div class="code-header d-flex justify-content-between align-items-center px-3 py-2 bg-dark">
+                                <span class="text-muted small">python</span>
+                                <button class="btn btn-sm btn-outline-light copy-btn" data-code="{{ metric.code_template|escapejs }}"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                            </div>
+                            <pre class="mb-0 p-3"><code class="language-python">{{ metric.code_template }}</code></pre>
+                        </div>
+                        
+                        <div class="small">
+                            <p class="mb-1"><strong>Range:</strong> {{ metric.range_info }}</p>
+                            <p class="mb-1"><strong>sklearn:</strong> <code>{{ metric.sklearn_function }}</code></p>
+                            <p class="mb-1"><strong>Use when:</strong> {{ metric.when_to_use }}</p>
+                            {% if metric.common_pitfalls %}
+                            <div class="mt-2">
+                                <strong class="text-danger">Pitfalls:</strong>
+                                <ul class="mb-0 text-danger small">
+                                    {% for pitfall in metric.common_pitfalls %}
+                                    <li>{{ pitfall }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% empty %}
+    <div class="text-center py-5">
+        <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
+        <h4 class="mt-3 text-muted">No Metrics Found</h4>
+        <p class="text-muted">Try different filters or search terms.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.code-block { border-radius: 10px; overflow: hidden; background: #1e1e1e; }
+.code-block .code-header { background: #2d2d2d; }
+.code-block pre { margin: 0; background: transparent !important; }
+</style>
+{% endblock %}

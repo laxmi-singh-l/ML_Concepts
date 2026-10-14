@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% block title %}{{ model.name }} - ML Models - ML Concepts{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'ml_models:model_catalog' %}">Models Catalog</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'ml_models:model_catalog' %}?category={{ model.category }}">{{ model.get_category_display }}</a></li>
+            <li class="breadcrumb-item active">{{ model.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <main class="col-lg-9">
+            <div class="d-flex align-items-start mb-4">
+                <div class="me-4">
+                    <div class="model-icon-lg">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                        <h1 class="h3 mb-0">{{ model.name }}</h1>
+                        {% for pt in model.problem_types %}
+                        <span class="badge bg-{% if pt == 'classification' %}primary{% elif pt == 'regression' %}success{% elif pt == 'clustering' %}warning{% else %}secondary{% endif %}">
+                            {{ pt|title }}
+                        </span>
+                        {% endfor %}
+                        {% if model.is_featured %}<span class="badge bg-warning"><i class="bi bi-star-fill"></i> Featured</span>{% endif %}
+                    </div>
+                    <p class="lead text-muted mb-2">{{ model.description }}</p>
+                    <div class="d-flex gap-3 small text-muted">
+                        <span><i class="bi bi-speedometer2 me-1"></i>Speed: {{ model.speed_rating|title }}</span>
+                        <span><i class="bi bi-layers me-1"></i>Complexity: {{ model.complexity|title }}</span>
+                        <span><i class="bi bi-box me-1"></i>{{ model.get_category_display }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-gear me-2 text-primary"></i>What It Does</h5>
+                </div>
+                <div class="card-body">{{ model.functionality|safe }}</div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-lightbulb me-2 text-warning"></i>When To Use</h5>
+                </div>
+                <div class="card-body">{{ model.when_to_use|safe }}</div>
+            </div>
+
+            {% if model.math_intuition %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-calculator me-2 text-info"></i>Math Intuition</h5>
+                </div>
+                <div class="card-body">{{ model.math_intuition|safe }}</div>
+            </div>
+            {% endif %}
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white border-0 py-3">
+                            <h6 class="mb-0 fw-bold text-success"><i class="bi bi-check-circle me-1"></i>Pros</h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="mb-0">
+                                {% for pro in model.pros %}
+                                <li class="text-success mb-1">{{ pro }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white border-0 py-3">
+                            <h6 class="mb-0 fw-bold text-danger"><i class="bi bi-x-circle me-1"></i>Cons</h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="mb-0">
+                                {% for con in model.cons %}
+                                <li class="text-danger mb-1">{{ con }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-code me-2 text-primary"></i>Starter Code</h5>
+                    <button class="btn btn-sm btn-outline-light copy-btn" data-code="{{ model.starter_code|escapejs }}"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="code-block">
+                        <pre class="mb-0 p-3"><code class="language-python">{{ model.starter_code }}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-play-circle me-2 text-success"></i>Full Training Example</h5>
+                    <button class="btn btn-sm btn-outline-light copy-btn" data-code="{{ model.full_training_code|escapejs }}"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="code-block">
+                        <pre class="mb-0 p-3"><code class="language-python">{{ model.full_training_code }}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            {% if hyperparams %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-sliders me-2 text-info"></i>Key Hyperparameters</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Default</th>
+                                    <th>Recommended</th>
+                                    <th>Impact</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for hp in hyperparams %}
+                                <tr>
+                                    <td><code class="text-primary">{{ hp.name }}</code></td>
+                                    <td><span class="badge bg-light text-dark">{{ hp.get_param_type_display }}</span></td>
+                                    <td><code>{{ hp.default }}</code></td>
+                                    <td><small>{{ hp.recommended_range|default:"—" }}</small></td>
+                                    <td><small>{{ hp.description }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if model.accuracy_notes %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-graph-up me-2 text-success"></i>Accuracy Notes</h5>
+                </div>
+                <div class="card-body">{{ model.accuracy_notes|safe }}</div>
+            </div>
+            {% endif %}
+        </main>
+
+        <aside class="col-lg-3">
+            <div class="sticky-top" style="top: 100px;">
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">Quick Actions</h6>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary copy-btn" data-code="{{ model.starter_code|escapejs }}">
+                                <i class="bi bi-clipboard me-2"></i>Copy Starter Code
+                            </button>
+                            <a href="{% url 'ml_models:model_compare' %}?models={{ model.slug }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-diagram-2 me-2"></i>Compare
+                            </a>
+                            <a href="{% url 'ml_libraries:training_pipeline' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-play-circle me-2"></i>Build Pipeline
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-transparent border-0">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-box me-2"></i>Import</h6>
+                    </div>
+                    <div class="card-body">
+                        <pre class="bg-dark text-light p-2 rounded small mb-0"><code>{{ model.sklearn_import }}</code></pre>
+                    </div>
+                </div>
+
+                {% if related %}
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent border-0">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-link-45deg me-2"></i>Related Models</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            {% for rel in related %}
+                            <li class="list-group-item border-0 px-3 py-2">
+                                <a href="{% url 'ml_models:model_detail' rel.slug %}" class="text-decoration-none">
+                                    <strong>{{ rel.name }}</strong>
+                                    <div class="small text-muted">{{ rel.description|truncatewords:8 }}</div>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.model-icon-lg { width: 72px; height: 72px; border-radius: 18px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; }
+.code-block { background: #1e1e1e; border-radius: 0 0 12px 12px; }
+.code-block pre { margin: 0; background: transparent !important; }
+</style>
+{% endblock %}

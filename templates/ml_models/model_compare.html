@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}Compare Models - ML Concepts{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="mb-4">
+        <h1 class="h3 mb-1"><i class="bi bi-diagram-2 me-2 text-primary"></i>Compare Models</h1>
+        <p class="text-muted mb-0">Select models to compare side by side</p>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    {% for model in all_models %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="models" value="{{ model.slug }}" id="m{{ model.id }}"
+                               {% if model.slug in selected_slugs %}checked{% endif %}>
+                        <label class="form-check-label" for="m{{ model.id }}">{{ model.name }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-diagram-2 me-2"></i>Compare Selected</button>
+            </form>
+        </div>
+    </div>
+
+    {% if selected_models %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="min-width: 150px;">Attribute</th>
+                    {% for model in selected_models %}
+                    <th class="text-center">{{ model.name }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="fw-bold">Category</td>
+                    {% for model in selected_models %}
+                    <td class="text-center"><span class="badge bg-primary">{{ model.get_category_display }}</span></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td class="fw-bold">Problem Types</td>
+                    {% for model in selected_models %}
+                    <td class="text-center">
+                        {% for pt in model.problem_types %}
+                        <span class="badge bg-light text-dark small">{{ pt|title }}</span>
+                        {% endfor %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td class="fw-bold">Complexity</td>
+                    {% for model in selected_models %}
+                    <td class="text-center">
+                        <span class="badge bg-{% if model.complexity == 'beginner' %}success{% elif model.complexity == 'intermediate' %}warning{% else %}danger{% endif %}">
+                            {{ model.complexity|title }}
+                        </span>
+                    </td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td class="fw-bold">Speed</td>
+                    {% for model in selected_models %}
+                    <td class="text-center">
+                        <span class="badge bg-{% if model.speed_rating == 'fast' %}success{% elif model.speed_rating == 'medium' %}warning{% else %}danger{% endif %}">
+                            {{ model.speed_rating|title }}
+                        </span>
+                    </td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td class="fw-bold">Description</td>
+                    {% for model in selected_models %}
+                    <td><small>{{ model.description|truncatewords:20 }}</small></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td class="fw-bold">Pros</td>
+                    {% for model in selected_models %}
+                    <td>
+                        <ul class="mb-0 small">
+                            {% for pro in model.pros|slice:":3" %}
+                            <li class="text-success">{{ pro }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td class="fw-bold">Cons</td>
+                    {% for model in selected_models %}
+                    <td>
+                        <ul class="mb-0 small">
+                            {% for con in model.cons|slice:":3" %}
+                            <li class="text-danger">{{ con }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td class="fw-bold">Import</td>
+                    {% for model in selected_models %}
+                    <td><code class="small">{{ model.sklearn_import }}</code></td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td class="fw-bold">Actions</td>
+                    {% for model in selected_models %}
+                    <td class="text-center">
+                        <a href="{% url 'ml_models:model_detail' model.slug %}" class="btn btn-sm btn-primary">Details</a>
+                    </td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

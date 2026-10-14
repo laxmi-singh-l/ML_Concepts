@@ -1,0 +1,482 @@
+{% extends 'base.html' %}
+{% block title %}Validation Patterns - ML Concepts{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1"><i class="bi bi-shield-check me-2 text-primary"></i>Validation Patterns</h1>
+            <p class="text-muted mb-0">Essential patterns for validating ML models</p>
+        </div>
+        <a href="{% url 'testing:test_generator' %}" class="btn btn-outline-secondary"><i class="bi bi-clipboard-check me-2"></i>Test Generator</a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 100px;">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Quick Navigation</h6>
+                    <div class="list-group list-group-flush">
+                        <a href="#data-validation" class="list-group-item list-group-item-action border-0"><i class="bi bi-check-circle me-2"></i>Data Validation</a>
+                        <a href="#split-patterns" class="list-group-item list-group-item-action border-0"><i class="bi bi-scissors me-2"></i>Train/Test Split</a>
+                        <a href="#cv-patterns" class="list-group-item list-group-item-action border-0"><i class="bi bi-arrow-repeat me-2"></i>Cross Validation</a>
+                        <a href="#overfitting" class="list-group-item list-group-item-action border-0"><i class="bi bi-exclamation-triangle me-2"></i>Overfitting Detection</a>
+                        <a href="#leakage" class="list-group-item list-group-item-action border-0"><i class="bi bi-droplet me-2"></i>Data Leakage</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <section id="data-validation" class="mb-5">
+                <h2 class="h4 fw-bold mb-3"><i class="bi bi-check-circle me-2 text-success"></i>Data Validation</h2>
+                <p class="text-muted mb-3">Always validate your data before training a model.</p>
+                
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h6 class="mb-0 fw-bold">Basic Data Validation</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="code-block mb-3">
+                            <div class="code-header d-flex justify-content-between align-items-center px-3 py-2 bg-dark">
+                                <span class="text-muted small">python</span>
+                                <button class="btn btn-sm btn-outline-light copy-btn" data-code="import pandas as pd
+import numpy as np
+
+def validate_dataset(X, y, name='Dataset'):
+    '''Comprehensive dataset validation'''
+    print(f'=== {name} Validation ===')
+    
+    # Shape check
+    print(f'Shape: X={X.shape}, y={y.shape}')
+    assert len(X) == len(y), 'X and y have different lengths!'
+    
+    # Missing values
+    X_missing = pd.DataFrame(X).isnull().sum().sum()
+    y_missing = pd.Series(y).isnull().sum()
+    print(f'Missing values: X={X_missing}, y={y_missing}')
+    
+    # Data types
+    print(f'Feature types: {pd.DataFrame(X).dtypes.unique()}')
+    
+    # Target distribution (classification)
+    if len(np.unique(y)) < 20:
+        print(f'Target distribution: {pd.Series(y).value_counts().to_dict()}')
+    
+    # Feature statistics
+    print(f'Feature means (first 5): {np.array(X)[:5].mean(axis=0)[:5]}')
+    print(f'Feature stds (first 5): {np.array(X)[:5].std(axis=0)[:5]}')
+    
+    # Outlier detection (simple IQR)
+    Q1 = np.percentile(X, 25, axis=0)
+    Q3 = np.percentile(X, 75, axis=0)
+    IQR = Q3 - Q1
+    outliers = ((X < (Q1 - 1.5 * IQR)) | (X > (Q3 + 1.5 * IQR))).sum()
+    print(f'Potential outliers per feature (first 5): {outliers[:5]}')
+    
+    print('Validation complete!\\n')
+
+# Usage
+# validate_dataset(X_train, y_train, 'Training Set')"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                            </div>
+                            <pre class="mb-0 p-3"><code class="language-python">import pandas as pd
+import numpy as np
+
+def validate_dataset(X, y, name='Dataset'):
+    """Comprehensive dataset validation"""
+    print(f'=== {name} Validation ===')
+    
+    # Shape check
+    print(f'Shape: X={X.shape}, y={y.shape}')
+    assert len(X) == len(y), 'X and y have different lengths!'
+    
+    # Missing values
+    X_missing = pd.DataFrame(X).isnull().sum().sum()
+    y_missing = pd.Series(y).isnull().sum()
+    print(f'Missing values: X={X_missing}, y={y_missing}')
+    
+    # Data types
+    print(f'Feature types: {pd.DataFrame(X).dtypes.unique()}')
+    
+    # Target distribution (classification)
+    if len(np.unique(y)) < 20:
+        print(f'Target distribution: {pd.Series(y).value_counts().to_dict()}')
+    
+    # Feature statistics
+    print(f'Feature means (first 5): {np.array(X)[:5].mean(axis=0)[:5]}')
+    print(f'Feature stds (first 5): {np.array(X)[:5].std(axis=0)[:5]}')
+    
+    # Outlier detection (simple IQR)
+    Q1 = np.percentile(X, 25, axis=0)
+    Q3 = np.percentile(X, 75, axis=0)
+    IQR = Q3 - Q1
+    outliers = ((X < (Q1 - 1.5 * IQR)) | (X > (Q3 + 1.5 * IQR))).sum()
+    print(f'Potential outliers per feature (first 5): {outliers[:5]}')
+    
+    print('Validation complete!\n')
+
+# Usage
+# validate_dataset(X_train, y_train, 'Training Set')</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="split-patterns" class="mb-5">
+                <h2 class="h4 fw-bold mb-3"><i class="bi bi-scissors me-2 text-primary"></i>Train/Test Split Patterns</h2>
+                
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h6 class="mb-0 fw-bold">Basic Split</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="code-block mb-3">
+                            <div class="code-header d-flex justify-content-between align-items-center px-3 py-2 bg-dark">
+                                <span class="text-muted small">python</span>
+                                <button class="btn btn-sm btn-outline-light copy-btn" data-code="from sklearn.model_selection import train_test_split
+
+# Standard 80/20 split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Stratified split (preserves class distribution)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+# Three-way split (train/val/test)
+X_train, X_temp, y_train, y_temp = train_test_split(
+    X, y, test_size=0.3, random_state=42
+)
+X_val, X_test, y_val, y_test = train_test_split(
+    X_temp, y_temp, test_size=0.5, random_state=42
+)
+# Result: 70% train, 15% val, 15% test"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                            </div>
+                            <pre class="mb-0 p-3"><code class="language-python">from sklearn.model_selection import train_test_split
+
+# Standard 80/20 split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Stratified split (preserves class distribution)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+# Three-way split (train/val/test)
+X_train, X_temp, y_train, y_temp = train_test_split(
+    X, y, test_size=0.3, random_state=42
+)
+X_val, X_test, y_val, y_test = train_test_split(
+    X_temp, y_temp, test_size=0.5, random_state=42
+)
+# Result: 70% train, 15% val, 15% test</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="cv-patterns" class="mb-5">
+                <h2 class="h4 fw-bold mb-3"><i class="bi bi-arrow-repeat me-2 text-info"></i>Cross Validation Patterns</h2>
+                
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h6 class="mb-0 fw-bold">Cross Validation Strategies</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="code-block mb-3">
+                            <div class="code-header d-flex justify-content-between align-items-center px-3 py-2 bg-dark">
+                                <span class="text-muted small">python</span>
+                                <button class="btn btn-sm btn-outline-light copy-btn" data-code="from sklearn.model_selection import (
+    cross_val_score, KFold, StratifiedKFold, 
+    TimeSeriesSplit, cross_validate
+)
+import numpy as np
+
+# K-Fold (regression)
+cv = KFold(n_splits=5, shuffle=True, random_state=42)
+scores = cross_val_score(model, X, y, cv=cv, scoring='r2')
+print(f'R2: {scores.mean():.4f} (+/- {scores.std() * 2:.4f})')
+
+# Stratified K-Fold (classification)
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+scores = cross_val_score(model, X, y, cv=cv, scoring='accuracy')
+print(f'Accuracy: {scores.mean():.4f} (+/- {scores.std() * 2:.4f})')
+
+# Time Series Split (time-dependent data)
+cv = TimeSeriesSplit(n_splits=5)
+scores = cross_val_score(model, X, y, cv=cv, scoring='r2')
+print(f'Time Series R2: {scores.mean():.4f}')
+
+# Multiple metrics at once
+scoring = ['accuracy', 'precision_macro', 'recall_macro', 'f1_macro']
+results = cross_validate(model, X, y, cv=5, scoring=scoring)
+for metric in scoring:
+    print(f'{metric}: {results[f\"test_{metric}\"].mean():.4f}')"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                            </div>
+                            <pre class="mb-0 p-3"><code class="language-python">from sklearn.model_selection import (
+    cross_val_score, KFold, StratifiedKFold, 
+    TimeSeriesSplit, cross_validate
+)
+import numpy as np
+
+# K-Fold (regression)
+cv = KFold(n_splits=5, shuffle=True, random_state=42)
+scores = cross_val_score(model, X, y, cv=cv, scoring='r2')
+print(f'R2: {scores.mean():.4f} (+/- {scores.std() * 2:.4f})')
+
+# Stratified K-Fold (classification)
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+scores = cross_val_score(model, X, y, cv=cv, scoring='accuracy')
+print(f'Accuracy: {scores.mean():.4f} (+/- {scores.std() * 2:.4f})')
+
+# Time Series Split (time-dependent data)
+cv = TimeSeriesSplit(n_splits=5)
+scores = cross_val_score(model, X, y, cv=cv, scoring='r2')
+print(f'Time Series R2: {scores.mean():.4f}')
+
+# Multiple metrics at once
+scoring = ['accuracy', 'precision_macro', 'recall_macro', 'f1_macro']
+results = cross_validate(model, X, y, cv=5, scoring=scoring)
+for metric in scoring:
+    print(f'{metric}: {results[f"test_{metric}"].mean():.4f}')</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="overfitting" class="mb-5">
+                <h2 class="h4 fw-bold mb-3"><i class="bi bi-exclamation-triangle me-2 text-warning"></i>Overfitting Detection</h2>
+                
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h6 class="mb-0 fw-bold">Detect Overfitting</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="code-block mb-3">
+                            <div class="code-header d-flex justify-content-between align-items-center px-3 py-2 bg-dark">
+                                <span class="text-muted small">python</span>
+                                <button class="btn btn-sm btn-outline-light copy-btn" data-code="import numpy as np
+from sklearn.model_selection import learning_curve
+
+def check_overfitting(model, X_train, X_test, y_train, y_test):
+    '''Compare train vs test performance'''
+    model.fit(X_train, y_train)
+    
+    train_score = model.score(X_train, y_train)
+    test_score = model.score(X_test, y_test)
+    gap = train_score - test_score
+    
+    print(f'Training score: {train_score:.4f}')
+    print(f'Test score:     {test_score:.4f}')
+    print(f'Gap:            {gap:.4f}')
+    
+    if gap > 0.1:
+        print('WARNING: Possible overfitting!')
+    elif gap < -0.05:
+        print('WARNING: Underfitting or data issues!')
+    else:
+        print('OK: Model generalizes well.')
+    
+    return gap
+
+def plot_learning_curve(model, X, y, cv=5):
+    '''Plot learning curve to diagnose bias/variance'''
+    import matplotlib.pyplot as plt
+    
+    train_sizes, train_scores, val_scores = learning_curve(
+        model, X, y, cv=cv, n_jobs=-1,
+        train_sizes=np.linspace(0.1, 1.0, 10),
+        scoring='accuracy'
+    )
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(train_sizes, train_scores.mean(axis=1), 'o-', label='Training')
+    plt.plot(train_sizes, val_scores.mean(axis=1), 'o-', label='Validation')
+    plt.fill_between(train_sizes,
+                     train_scores.mean(axis=1) - train_scores.std(axis=1),
+                     train_scores.mean(axis=1) + train_scores.std(axis=1), alpha=0.1)
+    plt.fill_between(train_sizes,
+                     val_scores.mean(axis=1) - val_scores.std(axis=1),
+                     val_scores.mean(axis=1) + val_scores.std(axis=1), alpha=0.1)
+    plt.xlabel('Training Size')
+    plt.ylabel('Score')
+    plt.title('Learning Curve')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.show()"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                            </div>
+                            <pre class="mb-0 p-3"><code class="language-python">import numpy as np
+from sklearn.model_selection import learning_curve
+
+def check_overfitting(model, X_train, X_test, y_train, y_test):
+    """Compare train vs test performance"""
+    model.fit(X_train, y_train)
+    
+    train_score = model.score(X_train, y_train)
+    test_score = model.score(X_test, y_test)
+    gap = train_score - test_score
+    
+    print(f'Training score: {train_score:.4f}')
+    print(f'Test score:     {test_score:.4f}')
+    print(f'Gap:            {gap:.4f}')
+    
+    if gap > 0.1:
+        print('WARNING: Possible overfitting!')
+    elif gap < -0.05:
+        print('WARNING: Underfitting or data issues!')
+    else:
+        print('OK: Model generalizes well.')
+    
+    return gap
+
+def plot_learning_curve(model, X, y, cv=5):
+    """Plot learning curve to diagnose bias/variance"""
+    import matplotlib.pyplot as plt
+    
+    train_sizes, train_scores, val_scores = learning_curve(
+        model, X, y, cv=cv, n_jobs=-1,
+        train_sizes=np.linspace(0.1, 1.0, 10),
+        scoring='accuracy'
+    )
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(train_sizes, train_scores.mean(axis=1), 'o-', label='Training')
+    plt.plot(train_sizes, val_scores.mean(axis=1), 'o-', label='Validation')
+    plt.fill_between(train_sizes,
+                     train_scores.mean(axis=1) - train_scores.std(axis=1),
+                     train_scores.mean(axis=1) + train_scores.std(axis=1), alpha=0.1)
+    plt.fill_between(train_sizes,
+                     val_scores.mean(axis=1) - val_scores.std(axis=1),
+                     val_scores.mean(axis=1) + val_scores.std(axis=1), alpha=0.1)
+    plt.xlabel('Training Size')
+    plt.ylabel('Score')
+    plt.title('Learning Curve')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.show()</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="leakage" class="mb-5">
+                <h2 class="h4 fw-bold mb-3"><i class="bi bi-droplet me-2 text-danger"></i>Data Leakage Detection</h2>
+                
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h6 class="mb-0 fw-bold">Check for Data Leakage</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning mb-3">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Data leakage</strong> occurs when information from outside the training dataset is used to create the model. This leads to unrealistically good performance.
+                        </div>
+                        <div class="code-block mb-3">
+                            <div class="code-header d-flex justify-content-between align-items-center px-3 py-2 bg-dark">
+                                <span class="text-muted small">python</span>
+                                <button class="btn btn-sm btn-outline-light copy-btn" data-code="import pandas as pd
+import numpy as np
+
+def check_data_leakage(X_train, X_test, y_train, y_test):
+    '''Common data leakage checks'''
+    issues = []
+    
+    # 1. Check for target in features
+    if hasattr(X_train, 'columns'):
+        if y_train.name in X_train.columns:
+            issues.append('Target variable found in features!')
+    
+    # 2. Check for duplicate rows across splits
+    train_df = pd.DataFrame(X_train)
+    test_df = pd.DataFrame(X_test)
+    common = pd.merge(train_df.drop_duplicates(), test_df.drop_duplicates(), how='inner')
+    if len(common) > 0:
+        issues.append(f'{len(common)} duplicate rows found across train/test!')
+    
+    # 3. Check for suspiciously high correlation with target
+    for col in train_df.columns:
+        if train_df[col].dtype in [np.float64, np.int64]:
+            corr = train_df[col].corr(pd.Series(y_train.values))
+            if abs(corr) > 0.95:
+                issues.append(f'Feature {col} has very high correlation ({corr:.3f}) with target!')
+    
+    # 4. Check for ID-like features
+    for col in train_df.columns:
+        if train_df[col].nunique() == len(train_df):
+            issues.append(f'Feature {col} looks like an ID (unique per row)!')
+    
+    if issues:
+        print('LEAKAGE ISSUES FOUND:')
+        for issue in issues:
+            print(f'  - {issue}')
+    else:
+        print('No obvious leakage detected.')
+    
+    return issues
+
+# Usage
+# check_data_leakage(X_train, X_test, y_train, y_test)"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                            </div>
+                            <pre class="mb-0 p-3"><code class="language-python">import pandas as pd
+import numpy as np
+
+def check_data_leakage(X_train, X_test, y_train, y_test):
+    """Common data leakage checks"""
+    issues = []
+    
+    # 1. Check for target in features
+    if hasattr(X_train, 'columns'):
+        if y_train.name in X_train.columns:
+            issues.append('Target variable found in features!')
+    
+    # 2. Check for duplicate rows across splits
+    train_df = pd.DataFrame(X_train)
+    test_df = pd.DataFrame(X_test)
+    common = pd.merge(train_df.drop_duplicates(), test_df.drop_duplicates(), how='inner')
+    if len(common) > 0:
+        issues.append(f'{len(common)} duplicate rows found across train/test!')
+    
+    # 3. Check for suspiciously high correlation with target
+    for col in train_df.columns:
+        if train_df[col].dtype in [np.float64, np.int64]:
+            corr = train_df[col].corr(pd.Series(y_train.values))
+            if abs(corr) > 0.95:
+                issues.append(f'Feature {col} has very high correlation ({corr:.3f}) with target!')
+    
+    # 4. Check for ID-like features
+    for col in train_df.columns:
+        if train_df[col].nunique() == len(train_df):
+            issues.append(f'Feature {col} looks like an ID (unique per row)!')
+    
+    if issues:
+        print('LEAKAGE ISSUES FOUND:')
+        for issue in issues:
+            print(f'  - {issue}')
+    else:
+        print('No obvious leakage detected.')
+    
+    return issues
+
+# Usage
+# check_data_leakage(X_train, X_test, y_train, y_test)</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.code-block { border-radius: 10px; overflow: hidden; background: #1e1e1e; }
+.code-block .code-header { background: #2d2d2d; }
+.code-block pre { margin: 0; background: transparent !important; }
+.list-group-item-action:hover { background: #f8f9fa; }
+</style>
+{% endblock %}

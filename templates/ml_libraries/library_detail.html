@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% block title %}{{ library.name }} - ML Libraries - ML Concepts{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'ml_libraries:library_list' %}">Libraries</a></li>
+            <li class="breadcrumb-item active">{{ library.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <aside class="col-lg-3">
+            <div class="sticky-top" style="top: 100px;">
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body">
+                        <div class="library-icon mb-3">
+                            <i class="bi bi-{{ library.icon|default:'cpu' }}"></i>
+                        </div>
+                        <h4 class="mb-1">{{ library.name }}</h4>
+                        <span class="badge bg-primary mb-2">{{ library.get_category_display }}</span>
+                        <p class="text-muted small">{{ library.description }}</p>
+                        <hr>
+                        <div class="d-grid gap-2">
+                            <a href="#install" class="btn btn-outline-primary btn-sm"><i class="bi bi-download me-2"></i>Installation</a>
+                            <a href="#hello-world" class="btn btn-outline-primary btn-sm"><i class="bi bi-code me-2"></i>Hello World</a>
+                            <a href="#training-steps" class="btn btn-outline-primary btn-sm"><i class="bi bi-list-ol me-2"></i>Training Steps</a>
+                            {% if library.documentation_url %}
+                            <a href="{{ library.documentation_url }}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-file-text me-2"></i>Docs</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent border-0">
+                        <h6 class="mb-0 fw-bold">Quick Facts</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush small">
+                            <li class="list-group-item border-0 px-3 py-2"><strong>Install:</strong> <code class="text-primary">{{ library.install_command }}</code></li>
+                            <li class="list-group-item border-0 px-3 py-2"><strong>Import:</strong> <code class="text-primary">{{ library.import_statement }}</code></li>
+                            {% if library.key_features %}
+                            <li class="list-group-item border-0 px-3 py-2"><strong>Features:</strong> {{ library.key_features|length }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="col-lg-9">
+            <section id="overview" class="mb-5">
+                <h2 class="h4 fw-bold mb-3">Overview</h2>
+                {% if library.long_description %}
+                <div class="alert alert-light border mb-4">{{ library.long_description|safe }}</div>
+                {% else %}
+                <p class="text-muted">{{ library.description }}</p>
+                {% endif %}
+                
+                <div class="row g-3 mb-4">
+                    {% if library.key_features %}
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-stars text-warning me-1"></i>Key Features</h6>
+                        <ul class="mb-0">
+                            {% for feature in library.key_features %}
+                            <li>{{ feature }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% if library.use_cases %}
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-lightbulb text-info me-1"></i>Best For</h6>
+                        <ul class="mb-0">
+                            {% for use_case in library.use_cases %}
+                            <li>{{ use_case }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="row g-3">
+                    {% if library.pros %}
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-2 text-success"><i class="bi bi-check-circle me-1"></i>Pros</h6>
+                        <ul class="mb-0 small">
+                            {% for pro in library.pros %}
+                            <li class="text-success">{{ pro }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% if library.cons %}
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-2 text-danger"><i class="bi bi-x-circle me-1"></i>Cons</h6>
+                        <ul class="mb-0 small">
+                            {% for con in library.cons %}
+                            <li class="text-danger">{{ con }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+
+            <section id="install" class="mb-5">
+                <h2 class="h4 fw-bold mb-3"><i class="bi bi-download me-2 text-primary"></i>Installation</h2>
+                <div class="code-block mb-3">
+                    <div class="code-header d-flex justify-content-between align-items-center px-3 py-2 bg-dark">
+                        <span class="text-muted small">bash</span>
+                        <button class="btn btn-sm btn-outline-light copy-btn" data-code="{{ library.install_command }}"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                    </div>
+                    <pre class="mb-0 p-3"><code class="language-bash">{{ library.install_command }}</code></pre>
+                </div>
+                
+                {% if library.version_check_code %}
+                <h6 class="fw-bold mb-2">Verify Installation</h6>
+                <div class="code-block mb-3">
+                    <div class="code-header d-flex justify-content-between align-items-center px-3 py-2 bg-dark">
+                        <span class="text-muted small">python</span>
+                        <button class="btn btn-sm btn-outline-light copy-btn" data-code="{{ library.version_check_code }}"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                    </div>
+                    <pre class="mb-0 p-3"><code class="language-python">{{ library.version_check_code }}</code></pre>
+                </div>
+                {% endif %}
+            </section>
+
+            <section id="hello-world" class="mb-5">
+                <h2 class="h4 fw-bold mb-3"><i class="bi bi-code me-2 text-primary"></i>Hello World</h2>
+                <p class="text-muted mb-3">Your first code with {{ library.name }}</p>
+                <div class="code-block mb-3">
+                    <div class="code-header d-flex justify-content-between align-items-center px-3 py-2 bg-dark">
+                        <span class="text-muted small">python</span>
+                        <button class="btn btn-sm btn-outline-light copy-btn" data-code="{{ library.hello_world_code }}"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                    </div>
+                    <pre class="mb-0 p-3"><code class="language-python">{{ library.hello_world_code }}</code></pre>
+                </div>
+                
+                {% if library.import_statement %}
+                <h6 class="fw-bold mb-2">Import Statement</h6>
+                <div class="code-block mb-3">
+                    <div class="code-header d-flex justify-content-between align-items-center px-3 py-2 bg-dark">
+                        <span class="text-muted small">python</span>
+                        <button class="btn btn-sm btn-outline-light copy-btn" data-code="{{ library.import_statement }}"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                    </div>
+                    <pre class="mb-0 p-3"><code class="language-python">{{ library.import_statement }}</code></pre>
+                </div>
+                {% endif %}
+            </section>
+
+            <section id="training-steps" class="mb-5">
+                <h2 class="h4 fw-bold mb-3"><i class="bi bi-list-ol me-2 text-primary"></i>Training Pipeline Steps</h2>
+                {% if steps %}
+                <div class="accordion" id="stepsAccordion">
+                    {% for step in steps %}
+                    <div class="accordion-item border-0 shadow-sm mb-2">
+                        <h3 class="accordion-header" id="heading{{ step.id }}">
+                            <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ step.id }}">
+                                <span class="badge bg-primary me-2">{{ forloop.counter }}</span>
+                                <i class="bi bi-{{ step.get_step_type_icon|default:'arrow-right' }} me-2"></i>
+                                {{ step.title }}
+                                {% if step.is_optional %}<span class="badge bg-secondary ms-2">Optional</span>{% endif %}
+                            </button>
+                        </h3>
+                        <div id="collapse{{ step.id }}" class="accordion-collapse collapse" data-bs-parent="#stepsAccordion">
+                            <div class="accordion-body">
+                                <p class="mb-3">{{ step.description }}</p>
+                                
+                                {% if step.explanation %}
+                                <div class="alert alert-light border mb-3">
+                                    {{ step.explanation|safe }}
+                                </div>
+                                {% endif %}
+                                
+                                <div class="code-block mb-3">
+                                    <div class="code-header d-flex justify-content-between align-items-center px-3 py-2 bg-dark">
+                                        <span class="text-muted small">python</span>
+                                        <button class="btn btn-sm btn-outline-light copy-btn" data-code="{{ step.code_template }}"><i class="bi bi-clipboard me-1"></i>Copy</button>
+                                    </div>
+                                    <pre class="mb-0 p-3"><code class="language-python">{{ step.code_template }}</code></pre>
+                                </div>
+                                
+                                {% if step.tips %}
+                                <h6 class="fw-bold mb-2"><i class="bi bi-lightbulb text-warning me-1"></i>Tips</h6>
+                                <ul class="mb-3 small">
+                                    {% for tip in step.tips %}
+                                    <li>{{ tip }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                                
+                                {% if step.common_pitfalls %}
+                                <h6 class="fw-bold mb-2"><i class="bi bi-exclamation-triangle text-danger me-1"></i>Common Pitfalls</h6>
+                                <ul class="mb-0 small">
+                                    {% for pitfall in step.common_pitfalls %}
+                                    <li class="text-danger">{{ pitfall }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info">No training steps defined for this library yet.</div>
+                {% endif %}
+            </section>
+
+            <div class="d-flex justify-content-between pt-4 border-top">
+                <a href="{% url 'ml_libraries:library_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i>Back to Libraries</a>
+                <a href="{% url 'ml_libraries:training_pipeline' %}" class="btn btn-primary"><i class="bi bi-play-circle me-2"></i>Build Training Pipeline</a>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(btn.dataset.code);
+        const original = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check me-1"></i>Copied!';
+        btn.classList.remove('btn-outline-light');
+        btn.classList.add('btn-success');
+        setTimeout(() => {
+            btn.innerHTML = original;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-light');
+        }, 2000);
+    });
+});
+</script>
+{% endblock %}

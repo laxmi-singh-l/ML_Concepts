@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static ml_extras %}
+{% block title %}ML Libraries - ML Concepts{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">ML Libraries Guide</h1>
+            <p class="text-muted mb-0">Compare, install, and learn every major ML library with code examples</p>
+        </div>
+        <a href="{% url 'ml_libraries:comparison' %}" class="btn btn-outline-primary">
+            <i class="bi bi-diagram-3 me-2"></i>Compare Libraries
+        </a>
+    </div>
+
+    {% for category, libraries in categorized_libraries.items %}
+    <section class="mb-5">
+        <h2 class="h5 text-uppercase text-muted mb-3 fw-bold">{{ category_labels|get_item:category }}</h2>
+        <div class="row g-3">
+            {% for lib in libraries %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card library-card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="library-icon me-3">
+                                <i class="bi bi-{{ lib.icon|default:'cpu' }}"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="card-title fw-bold mb-1">{{ lib.name }}</h5>
+                                <span class="badge bg-light text-dark">{{ lib.get_category_display }}</span>
+                            </div>
+                        </div>
+                        <p class="card-text text-muted small mb-3">{{ lib.description|truncatewords:20 }}</p>
+                        
+                        <div class="code-snippet mb-3 p-3 bg-dark rounded small">
+                            <code class="text-info">${{ lib.install_command }}</code>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'ml_libraries:library_detail' lib.slug %}" class="btn btn-primary btn-sm flex-grow-1">
+                                <i class="bi bi-book me-1"></i>Details
+                            </a>
+                            {% if lib.documentation_url %}
+                            <a href="{{ lib.documentation_url }}" target="_blank" class="btn btn-outline-secondary btn-sm" title="Documentation">
+                                <i class="bi bi-file-text"></i>
+                            </a>
+                            {% endif %}
+                            {% if lib.github_url %}
+                            <a href="{{ lib.github_url }}" target="_blank" class="btn btn-outline-secondary btn-sm" title="GitHub">
+                                <i class="bi bi-github"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endfor %}
+
+    <hr class="my-5">
+    <div class="text-center">
+        <h3 class="h5 mb-3">Ready to Build Your First Model?</h3>
+        <a href="{% url 'ml_libraries:training_pipeline' %}" class="btn btn-primary btn-lg px-5">
+            <i class="bi bi-play-circle me-2"></i>Start Training Pipeline
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.library-card { transition: transform 0.2s, box-shadow 0.2s; border-radius: 12px; }
+.library-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.1) !important; }
+.library-icon { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; flex-shrink: 0; }
+.code-snippet { font-family: 'JetBrains Mono', monospace; }
+</style>
+{% endblock %}

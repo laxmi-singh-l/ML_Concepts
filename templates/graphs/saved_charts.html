@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Saved Charts - ML Concepts{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Saved Charts</h1>
+            <p class="text-muted mb-0">Your previously saved charts and configurations</p>
+        </div>
+        <a href="{% url 'graphs:chart_builder' %}" class="btn btn-primary"><i class="bi bi-plus me-2"></i>New Chart</a>
+    </div>
+
+    {% if charts %}
+    <div class="row g-4">
+        {% for chart in charts %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="me-3" style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ chart.title }}</h6>
+                            <span class="badge bg-light text-dark">{{ chart.chart_type }}</span>
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mb-3">Saved {{ chart.created_at|date:"M d, Y H:i" }}</small>
+                    <a href="{% url 'graphs:chart_builder_type' chart.chart_type %}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="bi bi-pencil me-1"></i>Edit
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-graph-up text-muted" style="font-size: 4rem;"></i>
+        <h4 class="mt-3 text-muted">No Saved Charts Yet</h4>
+        <p class="text-muted mb-4">Build and save your first chart to see it here.</p>
+        <a href="{% url 'graphs:chart_builder' %}" class="btn btn-primary"><i class="bi bi-plus me-2"></i>Build a Chart</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
